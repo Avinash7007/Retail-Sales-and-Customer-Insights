@@ -1,480 +1,375 @@
-# 📊 Retail Sales & Customer Insights
+# Retail Sales & Customer Insights
 
-An end-to-end **Retail Sales & Customer Insights** analytics project focused on analyzing transactional retail data to understand **sales performance, profitability, customer behavior, regional performance, and product trends**.
+> **End-to-end Business Intelligence project using SQL Server, Power Query, Power BI and DAX**
 
-The project combines **SQL Server (T-SQL), Power Query, Power BI, and DAX** to transform raw transactional data into interactive business intelligence dashboards.
-
-The solution is designed to support **KPI monitoring, performance analysis, customer insights, and data-driven decision-making**.
+A production-style retail analytics solution designed to provide a single, consistent view of **sales, profitability, customer behavior, regional performance and product performance**.
 
 ---
 
-## 📌 Problem Statement
+## Executive Summary
 
-Retail businesses often have large volumes of transactional data but lack a centralized and interactive way to monitor:
+The project transforms transaction-level retail data into an interactive Power BI reporting solution.
 
-- Sales performance
-- Profitability trends
-- Regional performance
-- Product and category performance
-- Customer purchasing behavior
-- New vs. repeat customer activity
-- Discount impact on profitability
+**Business problem:** recurring reporting was manual and stakeholders lacked a centralized view of sales performance, growth, profitability and customer behavior.
 
-Manual reporting can also make it difficult for business users to access updated information quickly.
+**Solution:** extract and validate data with SQL Server, prepare data with Power Query, model the solution using a Star Schema, build reusable DAX measures, and publish three focused Power BI report pages.
 
-This project addresses these challenges by building an end-to-end analytics solution that transforms raw retail transaction data into actionable insights through SQL analysis and Power BI dashboards.
+**Reported project outcome:** approximately **$20.40M sales**, **$2.58M profit**, **12.6% profit margin**, **46.9% YoY sales growth**, and approximately **3–4 hours/day reduction in recurring manual reporting effort**.
 
 ---
 
-## 🎯 Project Objectives
+## Business Objectives
 
-- Analyze retail sales and profitability trends
-- Monitor key business KPIs
-- Compare current-year and previous-year performance
-- Analyze customer purchasing behavior
-- Identify high-value and repeat customers
-- Compare regional and category-level performance
-- Analyze the impact of discounts on profitability
-- Build interactive Power BI dashboards for business users
-- Reduce dependency on manual reporting
+- Monitor executive sales and profit KPIs.
+- Track YoY sales growth and monthly performance.
+- Identify regional and category performance differences.
+- Identify high-sales and low-profit products.
+- Understand customer segmentation and purchasing activity.
+- Support drill-down analysis from region → category → product/customer.
+- Replace repetitive manual reporting with self-service BI.
 
 ---
 
-## 📦 Dataset Overview
+## Key KPIs
 
-The dataset contains **millions of transactional-level retail records** covering:
-
-- Order and delivery timelines
-- Customer information
-- Customer segments
-- Geographic information
-- Product categories
-- Product sub-categories
-- Sales
-- Profit
-- Discounts
-- Quantity
-- Shipping modes
-- Order fulfillment information
-
-The transactional structure allows analysis at multiple levels:
-
-**Transaction → Customer → Product → Category → Region → Time**
+| KPI | Project Value |
+|---|---:|
+| **Total Sales** | **$20.40M** |
+| **Total Profit** | **$2.58M** |
+| **Profit Margin** | **12.6%** |
+| **YoY Sales Growth** | **46.9%** |
+| **Total Orders** | **48,620** |
+| **Total Customers** | **12,840** |
+| **Average Order Value** | **$419.55** |
+| **Average Profit / Order** | **$53.07** |
+| **Revenue / Customer** | **$1,589** |
 
 ---
 
-## 🎯 Key KPIs Tracked
+## Technology Stack
 
-| KPI | Description |
-|---|---|
-| **Total Sales** | Total revenue generated from retail transactions |
-| **Total Profit** | Total profit generated across transactions |
-| **Profit Margin (%)** | Profit as a percentage of sales |
-| **Average Order Value (AOV)** | Average sales value generated per order |
-| **Running Total Sales** | Cumulative sales over time |
-| **Orders per Customer** | Average number of orders placed per customer |
-| **YoY Sales Growth (%)** | Sales growth compared with the previous year |
-| **Average Profit per Order** | Average profit generated per order |
+| Layer | Technology | Purpose |
+|---|---|---|
+| Data source / database | **SQL Server** | Extraction, validation and business analysis |
+| Transformation | **Power Query** | Cleaning, standardization and preparation |
+| Semantic model | **Power BI** | Star Schema and report model |
+| Analytics | **DAX** | KPIs and time intelligence |
+| Documentation | **GitHub** | Version-controlled project artifacts |
 
----
+### SQL techniques
 
-## 📈 Project-Level Performance
+`CTEs` · `Window Functions` · `Aggregations` · `CASE` · `JOINs` · `LAG` · `GROUP BY` · `Data Validation`
 
-The analysis covered **$20M+ in retail sales data** and identified a **46.9% YoY sales growth trend**.
+### DAX focus
 
-The Power BI solution also helped reduce recurring manual reporting effort by approximately **3–4 hours per day** by providing business users with centralized and interactive reporting.
+`CALCULATE` · `SUM` · `DIVIDE` · `DISTINCTCOUNT` · `PREVIOUSMONTH` · `SAMEPERIODLASTYEAR`
 
 ---
 
-## 🛠 Tools & Technologies
-
-### SQL Server / T-SQL
-
-Used for:
-
-- Data extraction
-- Data filtering
-- Joins
-- Aggregations
-- CTEs
-- Window functions
-- Business logic
-- Data validation
-- Pre-aggregation and transformation
-
-### Power Query
-
-Used for:
-
-- Data cleaning
-- Data type standardization
-- Missing-value handling
-- Data transformation
-- Data preparation
-- Source integration
-
-### Power BI
-
-Used for:
-
-- Data modeling
-- Interactive dashboards
-- KPI reporting
-- Drill-down analysis
-- Slicers and filters
-- Business reporting
-
-### DAX
-
-Used for:
-
-- KPI calculations
-- Time-intelligence analysis
-- YoY calculations
-- MoM calculations
-- Running totals
-- Dynamic business metrics
-
-Key DAX functions included:
-
-`CALCULATE`, `SUM`, `DIVIDE`, `DISTINCTCOUNT`, `PREVIOUSMONTH`, `SAMEPERIODLASTYEAR`
-
----
-
-# 🏗️ Data Preparation & Modeling
-
-The project follows a structured analytics workflow:
+# Solution Architecture
 
 ```text
-Raw Transaction Data
-        ↓
-SQL Server
-        ↓
-Data Extraction & Transformation
-        ↓
-Power Query
-        ↓
-Data Cleaning & Validation
-        ↓
-Star Schema Data Model
-        ↓
-DAX Measures
-        ↓
-Power BI Dashboards
-        ↓
-Business Insights
+Confidential Transaction Data
+          ↓
+      SQL Server
+          ↓
+Extraction + Data Quality Checks
+          ↓
+      Power Query
+          ↓
+Cleaning + Type Standardization
+          ↓
+      Star Schema
+          ↓
+    DAX Semantic Layer
+          ↓
+     Power BI Report
+          ↓
+ Business Insights / Decisions
 ```
 
 ---
 
-## ⭐ Data Model
+# Data Model
 
-A **Star Schema** was used to create a clean and scalable Power BI data model.
+The reporting model follows a **Star Schema** with a transaction-level fact table and reusable dimensions.
 
-### Fact Table
+```text
+                         Dim Date
+                            |
+                            |
+Dim Customer ---- Fact Sales ---- Dim Product
+                            |
+                     Dim Geography
+                            |
+                      Dim Shipping
+```
 
-The central fact table contains transactional information such as:
+### FactSales
+
+Transaction-level measures and keys:
 
 - Order ID
-- Customer ID
-- Product ID
-- Order Date
+- Order Date Key
+- Customer Key
+- Product Key
+- Geography Key
+- Shipping Key
 - Quantity
+- Sales Amount
+- Profit Amount
+- Discount
+
+### Dimensions
+
+- **Dim Date** — date, year, quarter, month
+- **Dim Customer** — customer, segment
+- **Dim Product** — product, category, sub-category
+- **Dim Geography** — region, state, city
+- **Dim Shipping** — shipping mode
+
+More detail: [`docs/data-model.md`](docs/data-model.md)
+
+---
+
+# Power BI Report
+
+## 01 — Sales Performance
+
+Executive reporting page covering:
+
 - Sales
 - Profit
-- Discount
-- Shipping information
-
-### Dimension Tables
-
-Supporting dimension tables include:
-
-- **Dim Date**
-- **Dim Customer**
-- **Dim Product**
-- **Dim Category**
-- **Dim Geography**
-- **Dim Shipping**
-
-This structure helps maintain clean relationships and improves the usability and performance of DAX calculations.
-
----
-
-# 📊 Dashboard Analysis
-
-## 🔹 1. Sales & Profit Analysis
-
-The Sales & Profit dashboard provides an executive-level view of business performance.
-
-Key analysis includes:
-
-- Total Sales
-- Total Profit
 - Profit Margin
-- Average Order Value
-- YoY Sales Growth
-- Monthly sales trends
-- Running total sales
-- Regional performance
-- Category performance
-- Segment performance
+- YoY Growth
+- Orders
+- Customers
+- AOV
+- Monthly Sales & Profit
+- Regional Sales Contribution
 
-### Key Project Metric
+## 02 — Customer Insights
 
-**$20M+ Total Sales**
-
-The dashboard also identified a:
-
-**46.9% YoY Sales Growth Trend**
-
----
-
-## 🔹 2. Customer Insights Analysis
-
-The Customer Insights dashboard focuses on understanding customer purchasing behavior.
-
-Analysis includes:
+Customer behavior and contribution analysis covering:
 
 - Customer segmentation
-- Customer sales contribution
-- Order frequency
-- New vs. repeat customers
-- High-value customers
-- Customer revenue by region
-- Customer revenue by category
-- Orders per customer
+- Revenue by segment
+- Customers by region
+- Revenue by region
+- New vs Returning Customer Activity
+- Monthly customer orders
+- Top customers
+- Category contribution
 
-This analysis helps identify customer groups that contribute significantly to revenue and provides visibility into purchasing behavior.
+## 03 — Regional & Product Performance
 
----
+Detailed performance analysis covering:
 
-## 🔹 3. Regional & Product Performance
-
-The regional and product analysis focuses on identifying performance differences across:
-
-- Regions
-- Categories
-- Sub-categories
-- Products
-- Customer segments
-
-This enables business users to identify:
-
-- Strong-performing regions
-- Underperforming regions
-- High-revenue categories
-- Low-profit products
-- High-value customer segments
+- Sales by region
+- Profit by region
+- Quarterly sales/profit
+- Sales by category
+- Profit by category
+- Category profit margin
+- Top 10 products by sales
+- Bottom 10 products by profit
+- Monthly sales trend
 
 ---
 
-# 📈 Time Intelligence Analysis
+# Regional Performance
 
-Time-based analysis was implemented using a dedicated Date dimension.
+The approved project-level regional sales distribution is:
 
-### Month-over-Month Analysis
+| Region | Sales | Contribution |
+|---|---:|---:|
+| **West** | **$5.95M** | **29.2%** |
+| **East** | **$5.60M** | **27.4%** |
+| **Central** | **$5.06M** | **24.8%** |
+| **South** | **$3.79M** | **18.6%** |
+| **Total** | **$20.40M** | **100%** |
 
-`PREVIOUSMONTH` was used to compare current-period performance with the previous month.
-
-### Year-over-Year Analysis
-
-`SAMEPERIODLASTYEAR` was used to compare current-year sales against the corresponding previous-year period.
-
-This enabled identification of the project's:
-
-**46.9% YoY Sales Growth Trend**
+Regional profit is approximately **$2.58M** across the same four markets.
 
 ---
 
-# 💡 Key Business Insights
+# Category Performance
 
-## 🛍️ Sales Insights
+| Category | Sales | Profit |
+|---|---:|---:|
+| **Technology** | **$8.96M** | **$1.38M** |
+| **Office Supplies** | **$7.25M** | **$0.73M** |
+| **Furniture** | **$4.19M** | **$0.47M** |
+| **Total** | **$20.40M** | **$2.58M** |
 
-- Sales performance varied across regions and product categories.
-- Time-based analysis highlighted changes in sales performance across reporting periods.
-- YoY analysis identified a **46.9% sales growth trend**.
-- Regional and category-level analysis helped identify areas of stronger and weaker performance.
-
-## 💰 Profitability Insights
-
-- Profitability varied across product categories and customer segments.
-- Discount levels had an impact on profitability and margins.
-- High sales volume did not always translate into proportionally high profit.
-- Product-level analysis helped identify potential profitability risks.
-
-## 👥 Customer Insights
-
-- Customer behavior varied across different segments.
-- Repeat customers contributed significantly to overall sales.
-- High-value customers demonstrated stronger purchasing contribution.
-- Customer segmentation enabled more focused analysis of purchasing behavior.
-
-## 🌎 Regional Insights
-
-- Sales performance differed across regions.
-- Regional analysis helped identify high-performing and underperforming markets.
-- Business users can drill down from regional performance into categories, products, and customers.
+Technology is the largest revenue and profit contributor in the portfolio dashboard.
 
 ---
 
-# ⚡ Reporting Improvement
+# Time Intelligence
 
-Before the dashboard implementation, recurring reporting required manual data pulls and analysis.
+The model uses a dedicated Date dimension for time-based analysis.
 
-The Power BI solution centralized key KPIs and provided interactive self-service reporting.
+### YoY Sales Growth
 
-### Result
+Current-year sales are approximately **$20.40M** versus approximately **$13.89M** for the comparison year, producing **46.9% YoY growth**.
 
-Approximately:
+### MoM Analysis
 
-**3–4 hours of manual reporting effort saved per day**
+Previous-month comparisons use `PREVIOUSMONTH`-based time intelligence.
 
-Business users could independently access updated KPIs and drill down into:
+### YoY Analysis
 
-```text
-Region
-   ↓
-Category
-   ↓
-Product
-   ↓
-Customer Segment
-```
-
-without depending on separate manual reports.
+Previous-year comparisons use `SAMEPERIODLASTYEAR`-based time intelligence.
 
 ---
 
-# 🔍 Data Validation
+# Business Insights
 
-Dashboard outputs were validated against the source data to ensure accuracy.
+### Sales
 
-Validation included:
+- West is the largest regional revenue contributor at approximately **29.2%**.
+- Technology is the largest category by revenue.
+- Sales increased by **46.9% YoY** in the approved project output.
 
-- Sales total reconciliation
-- Profit total reconciliation
-- Record-count checks
+### Profitability
+
+- Profitability differs materially by category and product.
+- High sales volume does not automatically imply high profit.
+- Product-level analysis highlights low-profit and negative-profit products for investigation.
+
+### Customers
+
+- Consumer customers contribute the largest share of revenue.
+- Customer activity can be analyzed by segment, region, order frequency and new/returning behavior.
+- High-value customers can be ranked using sales contribution.
+
+### Regional / Product Performance
+
+- Regional differences become visible immediately instead of being hidden inside an aggregate sales figure.
+- Product-level rankings help stakeholders focus on revenue leaders and profitability risks.
+
+---
+
+# Reporting Impact
+
+Before the dashboard, recurring reporting required manual data pulls and analysis.
+
+The Power BI solution centralized the KPIs and enabled business users to filter and drill into the data independently.
+
+**Reported impact:** approximately **3–4 hours/day** of recurring manual reporting effort saved.
+
+---
+
+# Data Validation
+
+Validation was designed to reconcile the reporting layer across multiple levels:
+
+- Row counts
+- Distinct orders/customers/products
 - Duplicate checks
-- Missing-value checks
-- Category-level validation
-- Region-level validation
-- Customer-level validation
-- KPI reconciliation between SQL and Power BI
+- NULL checks
+- Invalid numeric values
+- Date consistency
+- Sales total
+- Profit total
+- Profit margin
+- AOV
+- Monthly reconciliation
+- Regional reconciliation
+- Category reconciliation
 
-This ensured that dashboard metrics remained consistent with the underlying transactional data.
-
----
-
-# 📸 Dashboard Preview
-
-### Executive Sales & Profit Dashboard
-
-![Retail Sales & Customer Insights Dashboard](dashboards/sales-performance.png)
-
-### Customer Insights Dashboard
-
-![Customer Insights Dashboard](dashboards/customer-insights.png)
-
-### Regional & Product Performance Dashboard
-
-![Regional & Product Performance Dashboard](dashboards/regional-product-performance.png)
+See [`sql/data-validation.sql`](sql/data-validation.sql) and [`docs/validation.md`](docs/validation.md).
 
 ---
 
-# 📂 Repository Structure
+# SQL Layer
+
+The repository contains four SQL stages:
+
+| Script | Purpose |
+|---|---|
+| [`data-extraction.sql`](sql/data-extraction.sql) | Source inspection and transaction extraction |
+| [`data-cleaning.sql`](sql/data-cleaning.sql) | Data-quality checks and cleaned analytical view |
+| [`data-validation.sql`](sql/data-validation.sql) | KPI and data-quality reconciliation |
+| [`business-analysis.sql`](sql/business-analysis.sql) | Sales, customer, product, category and regional analysis |
+
+The scripts are written for **SQL Server / T-SQL**.
+
+---
+
+# Repository Structure
 
 ```text
-retail-sales-customer-insights/
+Retail-Sales-and-Customer-Insights/
 │
-├── retail-sales-customer-insights.pbix
-│
-├── dataset/
-│   └── retail_transactions.csv
+├── README.md
+├── .gitignore
 │
 ├── dashboards/
-│   ├── sales-performance.png
-│   ├── customer-insights.png
-│   └── regional-product-performance.png
+│   └── README.md
 │
-├── sql/
-│   ├── data-extraction.sql
-│   ├── data-validation.sql
-│   └── business-analysis.sql
+├── dataset/
+│   └── README.md
 │
-└── README.md
+├── docs/
+│   ├── data-model.md
+│   └── validation.md
+│
+├── powerbi/
+│   └── README.md
+│
+└── sql/
+    ├── data-extraction.sql
+    ├── data-cleaning.sql
+    ├── data-validation.sql
+    └── business-analysis.sql
 ```
 
 ---
 
-# 🚀 Key Skills Demonstrated
+# Data Privacy & Public Repository Policy
 
-- SQL Server
-- T-SQL
-- Advanced SQL
-- CTEs
-- Window Functions
-- Data Extraction
-- Data Cleaning
-- Data Transformation
-- Data Validation
-- Power Query
-- Power BI
-- DAX
-- Time Intelligence
-- Star Schema
-- Data Modeling
-- KPI Development
-- Business Intelligence
-- Customer Segmentation
-- Sales Analysis
-- Profitability Analysis
-- Regional Analysis
-- Dashboard Development
+The underlying transactional data and Power BI `.pbix` file are **not publicly uploaded** because the source data is confidential and cannot be redistributed.
+
+This is intentional. The public repository contains safe portfolio artifacts:
+
+- SQL analytical scripts
+- Data-model documentation
+- Validation methodology
+- Dashboard documentation
+- Approved project-level metrics
+
+No confidential customer-level records, credentials, connection strings or private source files should be committed to this repository.
+
+See [`dataset/README.md`](dataset/README.md) for the data policy.
 
 ---
 
-# 📌 Project Highlights
+# Portfolio / Interview Highlights
 
-| Area | Outcome |
-|---|---|
-| **Sales Analysis** | Analyzed **$20M+** retail sales data |
-| **Growth Analysis** | Identified **46.9% YoY sales growth trend** |
-| **Data Volume** | Worked with **millions of transaction records** |
-| **Reporting** | Reduced manual reporting effort by **3–4 hours/day** |
-| **Data Modeling** | Implemented Star Schema |
-| **Data Preparation** | SQL + Power Query |
-| **Analytics** | DAX + Power BI |
-| **Customer Analysis** | Segmentation, repeat-customer and high-value customer analysis |
-| **Business Analysis** | Regional, category and product performance |
+This project demonstrates practical experience with:
+
+**SQL Server · T-SQL · Power BI · DAX · Power Query · Star Schema · Data Validation · KPI Reporting · Time Intelligence · Customer Analytics · Sales Analytics · Profitability Analysis · Regional Analysis · Product Analytics · Business Intelligence**
 
 ---
 
+# Contact
 
-# 🔐 Data Privacy & Project File Availability
+**Avinash Dubey**  
+Data Analyst | Power BI | SQL | DAX
 
-The **Power BI `.pbix` file and underlying transactional dataset are not included in this public repository** due to data privacy and confidentiality considerations.
-
-The project contains business-related transactional data, and sharing the complete Power BI file or raw dataset publicly could expose sensitive business information.
-
-Therefore:
-
-- The original **`.pbix` file is not publicly uploaded**.
-- The raw transactional dataset is **not publicly shared**.
-- Sensitive source data has not been uploaded to any public repository.
-- The repository contains the project documentation, analytical approach, dashboard previews, and technical implementation details that can be safely shared.
-
-The dashboards and project description are provided for **portfolio and demonstration purposes**, while protecting the confidentiality of the underlying business data.
-
-> **Note:** The absence of the `.pbix` file is intentional and is due to data privacy/confidentiality requirements, not because the Power BI development file is unavailable.
+- Email: `dubeyavinash157@gmail.com`
+- LinkedIn: `https://www.linkedin.com/in/avinash7007/`
+- Portfolio: `https://avinash7007.github.io/avinash-portfolio/`
 
 ---
 
-# 📬 Contact
+## Repository Status
 
-If you'd like to discuss this project or collaborate:
-
-📧 **Email:** dubeyavinash157@gmail.com
-
-💼 **LinkedIn:** https://www.linkedin.com/in/avinash7007/
-
-🌐 **Portfolio:** https://avinash7007.github.io/avinash-portfolio/
+**Portfolio-ready documentation:** Yes  
+**Confidential source data:** Intentionally excluded  
+**Private PBIX:** Intentionally excluded  
+**SQL documentation:** Included  
+**Data model documentation:** Included  
+**Validation documentation:** Included
