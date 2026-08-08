@@ -1,208 +1,223 @@
-/*
-    Retail Sales & Customer Insights
-    SQL Server / T-SQL
-    File: business-analysis.sql
-
-    Purpose:
-    - Produce business-ready analysis for the Power BI dashboards.
-    - Cover sales, profitability, customers, products and regional performance.
+/* Retail Sales & Customer Insights | business-analysis.sql
+   SQL Server / T-SQL
+   Business analysis layer for the Power BI dashboards.
 */
 
 USE RetailSalesDB;
 GO
 
-/* ================================================================
-   1. Executive KPI Summary
-   ================================================================ */
+/* 1. Executive KPI summary - dashboard headline metrics */
 SELECT
-    SUM(Sales) AS TotalSales,
-    SUM(Profit) AS TotalProfit,
-    SUM(Profit) * 1.0 / NULLIF(SUM(Sales), 0) AS ProfitMargin,
-    COUNT(DISTINCT OrderID) AS TotalOrders,
-    COUNT(DISTINCT CustomerID) AS TotalCustomers,
-    SUM(Sales) * 1.0 / NULLIF(COUNT(DISTINCT OrderID), 0) AS AverageOrderValue,
-    SUM(Profit) * 1.0 / NULLIF(COUNT(DISTINCT OrderID), 0) AS AverageProfitPerOrder
-FROM dbo.vw_RetailTransactions_Clean;
+    SUM(f.Sales) AS TotalSales,
+    SUM(f.Profit) AS TotalProfit,
+    CAST(100.0 * SUM(f.Profit) / NULLIF(SUM(f.Sales),0) AS decimal(10,2)) AS ProfitMarginPct,
+    COUNT(DISTINCT f.OrderID) AS TotalOrders,
+    COUNT(DISTINCT f.CustomerID) AS TotalCustomers,
+    CAST(SUM(f.Sales) / NULLIF(COUNT(DISTINCT f.OrderID),0) AS decimal(18,2)) AS AverageOrderValue,
+    CAST(SUM(f.Profit) / NULLIF(COUNT(DISTINCT f.OrderID),0) AS decimal(18,2)) AS AverageProfitPerOrder
+FROM dbo.vw_FactSales_Clean AS f
+WHERE f.OrderDate >= '2025-01-01'
+  AND f.OrderDate < '2026-01-01';
 GO
 
-/* ================================================================
-   2. Monthly Sales & Profit Trend
-   ================================================================ */
+/* 2. Monthly Sales & Profit - Sales Performance page */
 SELECT
-    YEAR(OrderDate) AS SalesYear,
-    MONTH(OrderDate) AS SalesMonth,
-    DATENAME(MONTH, OrderDate) AS MonthName,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit,
-    SUM(Profit) * 1.0 / NULLIF(SUM(Sales), 0) AS ProfitMargin
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY YEAR(OrderDate), MONTH(OrderDate), DATENAME(MONTH, OrderDate)
+    YEAR(f.OrderDate) AS SalesYear,
+    MONTH(f.OrderDate) AS SalesMonth,
+    DATENAME(MONTH,f.OrderDate) AS MonthName,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit,
+    CAST(100.0 * SUM(f.Profit) / NULLIF(SUM(f.Sales),0) AS decimal(10,2)) AS ProfitMarginPct
+FROM dbo.vw_FactSales_Clean AS f
+GROUP BY YEAR(f.OrderDate), MONTH(f.OrderDate), DATENAME(MONTH,f.OrderDate)
 ORDER BY SalesYear, SalesMonth;
 GO
 
-/* ================================================================
-   3. Year-over-Year Sales Growth
-   ================================================================ */
-WITH YearlySales AS
+/* 3. YoY growth - dashboard headline target: 46.9% */
+WITH YearSales AS
 (
-    SELECT
-        YEAR(OrderDate) AS SalesYear,
-        SUM(Sales) AS Sales
-    FROM dbo.vw_RetailTransactions_Clean
+    SELECT YEAR(OrderDate) AS SalesYear, SUM(Sales) AS Sales
+    FROM dbo.vw_FactSales_Clean
     GROUP BY YEAR(OrderDate)
 ),
 YoY AS
 (
-    SELECT
-        SalesYear,
-        Sales,
-        LAG(Sales) OVER (ORDER BY SalesYear) AS PreviousYearSales
-    FROM YearlySales
+    SELECT SalesYear, Sales,
+           LAG(Sales) OVER (ORDER BY SalesYear) AS PreviousYearSales
+    FROM YearSales
 )
 SELECT
     SalesYear,
     Sales,
     PreviousYearSales,
-    (Sales - PreviousYearSales) * 1.0 / NULLIF(PreviousYearSales, 0) AS YoYSalesGrowth
+    CAST(100.0 * (Sales - PreviousYearSales) /
+         NULLIF(PreviousYearSales,0) AS decimal(10,2)) AS YoYSalesGrowthPct
 FROM YoY
 ORDER BY SalesYear;
 GO
 
-/* ================================================================
-   4. Quarterly Sales Comparison
-   ================================================================ */
+/* 4. Quarterly Sales & Profit */
 SELECT
-    YEAR(OrderDate) AS SalesYear,
-    DATEPART(QUARTER, OrderDate) AS QuarterNumber,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY YEAR(OrderDate), DATEPART(QUARTER, OrderDate)
+    YEAR(f.OrderDate) AS SalesYear,
+    DATEPART(QUARTER,f.OrderDate) AS QuarterNumber,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit
+FROM dbo.vw_FactSales_Clean AS f
+GROUP BY YEAR(f.OrderDate), DATEPART(QUARTER,f.OrderDate)
 ORDER BY SalesYear, QuarterNumber;
 GO
 
-/* ================================================================
-   5. Sales & Profit by Region
-   ================================================================ */
+/* 5. Regional Performance
+   Dashboard order: West, East, Central, South */
 SELECT
-    Region,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit,
-    SUM(Profit) * 1.0 / NULLIF(SUM(Sales), 0) AS ProfitMargin,
-    COUNT(DISTINCT OrderID) AS Orders,
-    COUNT(DISTINCT CustomerID) AS Customers
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY Region
+    dg.Region,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit,
+    CAST(100.0 * SUM(f.Profit) / NULLIF(SUM(f.Sales),0) AS decimal(10,2)) AS ProfitMarginPct,
+    CAST(100.0 * SUM(f.Sales) /
+         NULLIF(SUM(SUM(f.Sales)) OVER (),0) AS decimal(10,2)) AS SalesContributionPct
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimGeography AS dg ON f.GeographyID = dg.GeographyID
+GROUP BY dg.Region
 ORDER BY Sales DESC;
 GO
 
-/* ================================================================
-   6. Category Performance
-   ================================================================ */
+/* 6. Category Performance */
 SELECT
-    Category,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit,
-    SUM(Profit) * 1.0 / NULLIF(SUM(Sales), 0) AS ProfitMargin,
-    SUM(Quantity) AS UnitsSold
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY Category
+    dp.Category,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit,
+    CAST(100.0 * SUM(f.Profit) / NULLIF(SUM(f.Sales),0) AS decimal(10,2)) AS ProfitMarginPct,
+    SUM(f.Quantity) AS UnitsSold
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimProduct AS dp ON f.ProductID = dp.ProductID
+GROUP BY dp.Category
 ORDER BY Sales DESC;
 GO
 
-/* ================================================================
-   7. Top 10 Products by Sales
-   ================================================================ */
+/* 7. Top 10 Products by Sales */
 SELECT TOP (10)
-    ProductName,
-    Category,
-    SubCategory,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit,
-    SUM(Quantity) AS UnitsSold
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY ProductName, Category, SubCategory
+    dp.ProductName,
+    dp.Category,
+    dp.SubCategory,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit,
+    SUM(f.Quantity) AS UnitsSold
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimProduct AS dp ON f.ProductID = dp.ProductID
+GROUP BY dp.ProductName, dp.Category, dp.SubCategory
 ORDER BY Sales DESC;
 GO
 
-/* ================================================================
-   8. Bottom 10 Products by Profit
-   ================================================================ */
+/* 8. Bottom 10 Products by Profit */
 SELECT TOP (10)
-    ProductName,
-    Category,
-    SubCategory,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit,
-    SUM(Profit) * 1.0 / NULLIF(SUM(Sales), 0) AS ProfitMargin
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY ProductName, Category, SubCategory
+    dp.ProductName,
+    dp.Category,
+    dp.SubCategory,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit,
+    CAST(100.0 * SUM(f.Profit) / NULLIF(SUM(f.Sales),0) AS decimal(10,2)) AS ProfitMarginPct
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimProduct AS dp ON f.ProductID = dp.ProductID
+GROUP BY dp.ProductName, dp.Category, dp.SubCategory
 ORDER BY Profit ASC;
 GO
 
-/* ================================================================
-   9. Customer Segment Performance
-   ================================================================ */
+/* 9. Customer Segment Performance
+   Dashboard: Consumer 53.2%, Corporate 28.6%, Home Office 18.2% of customers/revenue view */
 SELECT
-    Segment,
-    COUNT(DISTINCT CustomerID) AS Customers,
-    COUNT(DISTINCT OrderID) AS Orders,
-    SUM(Sales) AS Revenue,
-    SUM(Profit) AS Profit,
-    SUM(Sales) * 1.0 / NULLIF(COUNT(DISTINCT CustomerID), 0) AS RevenuePerCustomer
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY Segment
+    dc.Segment,
+    COUNT(DISTINCT f.CustomerID) AS Customers,
+    COUNT(DISTINCT f.OrderID) AS Orders,
+    SUM(f.Sales) AS Revenue,
+    SUM(f.Profit) AS Profit,
+    CAST(SUM(f.Sales) / NULLIF(COUNT(DISTINCT f.CustomerID),0) AS decimal(18,2)) AS RevenuePerCustomer
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimCustomer AS dc ON f.CustomerID = dc.CustomerID
+GROUP BY dc.Segment
 ORDER BY Revenue DESC;
 GO
 
-/* ================================================================
-   10. Top 10 Customers by Sales
-   ================================================================ */
-SELECT TOP (10)
-    CustomerID,
-    CustomerName,
-    Segment,
-    COUNT(DISTINCT OrderID) AS Orders,
-    SUM(Sales) AS Sales,
-    SUM(Profit) AS Profit
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY CustomerID, CustomerName, Segment
+/* 10. Top 5 Customers by Sales - Customer Insights page */
+SELECT TOP (5)
+    f.CustomerID,
+    dc.CustomerName,
+    dc.Segment,
+    COUNT(DISTINCT f.OrderID) AS Orders,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimCustomer AS dc ON f.CustomerID = dc.CustomerID
+GROUP BY f.CustomerID, dc.CustomerName, dc.Segment
 ORDER BY Sales DESC;
 GO
 
-/* ================================================================
-   11. Repeat Customer Analysis
-   ================================================================ */
-WITH CustomerOrders AS
+/* 11. Top 5 Customers by Order Frequency */
+SELECT TOP (5)
+    f.CustomerID,
+    dc.CustomerName,
+    COUNT(DISTINCT f.OrderID) AS OrderFrequency
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimCustomer AS dc ON f.CustomerID = dc.CustomerID
+GROUP BY f.CustomerID, dc.CustomerName
+ORDER BY OrderFrequency DESC;
+GO
+
+/* 12. New vs Returning Customer Activity by Month */
+WITH CustomerFirstOrder AS
 (
-    SELECT
-        CustomerID,
-        COUNT(DISTINCT OrderID) AS OrderCount
-    FROM dbo.vw_RetailTransactions_Clean
+    SELECT CustomerID, MIN(OrderDate) AS FirstOrderDate
+    FROM dbo.vw_FactSales_Clean
     GROUP BY CustomerID
 )
 SELECT
-    CASE
-        WHEN OrderCount = 1 THEN 'One-Time Customer'
-        ELSE 'Repeat Customer'
-    END AS CustomerType,
-    COUNT(*) AS Customers
-FROM CustomerOrders
-GROUP BY
-    CASE
-        WHEN OrderCount = 1 THEN 'One-Time Customer'
-        ELSE 'Repeat Customer'
-    END;
+    YEAR(f.OrderDate) AS SalesYear,
+    MONTH(f.OrderDate) AS SalesMonth,
+    COUNT(DISTINCT CASE
+        WHEN YEAR(f.OrderDate) = YEAR(c.FirstOrderDate)
+         AND MONTH(f.OrderDate) = MONTH(c.FirstOrderDate)
+        THEN f.CustomerID END) AS NewCustomers,
+    COUNT(DISTINCT CASE
+        WHEN f.OrderDate > c.FirstOrderDate
+        THEN f.CustomerID END) AS ReturningCustomers
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN CustomerFirstOrder AS c ON f.CustomerID = c.CustomerID
+GROUP BY YEAR(f.OrderDate), MONTH(f.OrderDate)
+ORDER BY SalesYear, SalesMonth;
 GO
 
-/* ================================================================
-   12. Customer Revenue Contribution
-   ================================================================ */
+/* 13. Customer Revenue Contribution */
 SELECT
-    Segment,
-    SUM(Sales) AS Revenue,
-    SUM(Sales) * 100.0 / NULLIF(SUM(SUM(Sales)) OVER (), 0) AS RevenueContributionPct
-FROM dbo.vw_RetailTransactions_Clean
-GROUP BY Segment
+    dc.Segment,
+    SUM(f.Sales) AS Revenue,
+    CAST(100.0 * SUM(f.Sales) /
+         NULLIF(SUM(SUM(f.Sales)) OVER (),0) AS decimal(10,2)) AS RevenueContributionPct
+FROM dbo.vw_FactSales_Clean AS f
+INNER JOIN dbo.DimCustomer AS dc ON f.CustomerID = dc.CustomerID
+GROUP BY dc.Segment
 ORDER BY Revenue DESC;
+GO
+
+/* 14. Discount vs Profitability */
+SELECT
+    CASE
+        WHEN f.Discount = 0 THEN '0%'
+        WHEN f.Discount < 0.10 THEN '1-9%'
+        WHEN f.Discount < 0.20 THEN '10-19%'
+        WHEN f.Discount < 0.30 THEN '20-29%'
+        ELSE '30%+'
+    END AS DiscountBand,
+    SUM(f.Sales) AS Sales,
+    SUM(f.Profit) AS Profit,
+    CAST(100.0 * SUM(f.Profit) / NULLIF(SUM(f.Sales),0) AS decimal(10,2)) AS ProfitMarginPct
+FROM dbo.vw_FactSales_Clean AS f
+GROUP BY
+    CASE
+        WHEN f.Discount = 0 THEN '0%'
+        WHEN f.Discount < 0.10 THEN '1-9%'
+        WHEN f.Discount < 0.20 THEN '10-19%'
+        WHEN f.Discount < 0.30 THEN '20-29%'
+        ELSE '30%+'
+    END
+ORDER BY DiscountBand;
 GO
