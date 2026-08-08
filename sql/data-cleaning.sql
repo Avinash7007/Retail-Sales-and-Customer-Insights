@@ -1,31 +1,22 @@
-/*
-    Retail Sales & Customer Insights
-    SQL Server / T-SQL
-    File: data-cleaning.sql
-
-    Purpose:
-    - Standardize source values before analytical modeling.
-    - Identify and handle common data-quality issues.
-    - Keep business calculations out of the cleaning layer.
-
-    Assumed source table:
-        dbo.RetailTransactions
+/* Retail Sales & Customer Insights | data-cleaning.sql
+   SQL Server / T-SQL
+   Cleaning layer for FactSales + project dimensions.
 */
 
 USE RetailSalesDB;
 GO
 
--- 1. Check for duplicate transaction IDs
+/* 1. Duplicate transaction check */
 SELECT
     OrderID,
-    COUNT(*) AS RowCount
-FROM dbo.RetailTransactions
+    COUNT(*) AS TransactionRows
+FROM dbo.FactSales
 GROUP BY OrderID
 HAVING COUNT(*) > 1
-ORDER BY RowCount DESC;
+ORDER BY TransactionRows DESC;
 GO
 
--- 2. Check mandatory fields for NULL values
+/* 2. Mandatory-field quality check */
 SELECT
     SUM(CASE WHEN OrderID IS NULL THEN 1 ELSE 0 END) AS NullOrderID,
     SUM(CASE WHEN OrderDate IS NULL THEN 1 ELSE 0 END) AS NullOrderDate,
@@ -33,60 +24,59 @@ SELECT
     SUM(CASE WHEN ProductID IS NULL THEN 1 ELSE 0 END) AS NullProductID,
     SUM(CASE WHEN Sales IS NULL THEN 1 ELSE 0 END) AS NullSales,
     SUM(CASE WHEN Profit IS NULL THEN 1 ELSE 0 END) AS NullProfit
-FROM dbo.RetailTransactions;
+FROM dbo.FactSales;
 GO
 
--- 3. Check invalid numeric values
+/* 3. Numeric/business-rule checks */
 SELECT
-    COUNT(*) AS InvalidRows
-FROM dbo.RetailTransactions
-WHERE Quantity < 0
-   OR Sales < 0
-   OR Discount < 0
-   OR Discount > 1;
+    SUM(CASE WHEN Quantity <= 0 THEN 1 ELSE 0 END) AS InvalidQuantityRows,
+    SUM(CASE WHEN Sales < 0 THEN 1 ELSE 0 END) AS NegativeSalesRows,
+    SUM(CASE WHEN Discount < 0 OR Discount > 1 THEN 1 ELSE 0 END) AS InvalidDiscountRows,
+    SUM(CASE WHEN ShipDate < OrderDate THEN 1 ELSE 0 END) AS InvalidShippingDateRows
+FROM dbo.FactSales;
 GO
 
--- 4. Check date consistency
-SELECT
-    COUNT(*) AS InvalidDateRows
-FROM dbo.RetailTransactions
-WHERE ShipDate IS NOT NULL
-  AND OrderDate IS NOT NULL
-  AND ShipDate < OrderDate;
-GO
-
--- 5. Standardized analytical view
--- This view keeps the source table unchanged and exposes cleaned fields.
-CREATE OR ALTER VIEW dbo.vw_RetailTransactions_Clean
+/* 4. Clean analytical view used by downstream analysis */
+CREATE OR ALTER VIEW dbo.vw_FactSales_Clean
 AS
 SELECT
-    LTRIM(RTRIM(OrderID)) AS OrderID,
-    CAST(OrderDate AS date) AS OrderDate,
-    CAST(ShipDate AS date) AS ShipDate,
-    LTRIM(RTRIM(CustomerID)) AS CustomerID,
-    NULLIF(LTRIM(RTRIM(CustomerName)), '') AS CustomerName,
-    NULLIF(LTRIM(RTRIM(Segment)), '') AS Segment,
-    LTRIM(RTRIM(ProductID)) AS ProductID,
-    NULLIF(LTRIM(RTRIM(ProductName)), '') AS ProductName,
-    NULLIF(LTRIM(RTRIM(Category)), '') AS Category,
-    NULLIF(LTRIM(RTRIM(SubCategory)), '') AS SubCategory,
-    NULLIF(LTRIM(RTRIM(Region)), '') AS Region,
-    NULLIF(LTRIM(RTRIM(State)), '') AS State,
-    NULLIF(LTRIM(RTRIM(City)), '') AS City,
-    NULLIF(LTRIM(RTRIM(ShipMode)), '') AS ShipMode,
-    TRY_CONVERT(int, Quantity) AS Quantity,
-    TRY_CONVERT(decimal(18,2), Sales) AS Sales,
-    TRY_CONVERT(decimal(18,2), Profit) AS Profit,
-    TRY_CONVERT(decimal(10,4), Discount) AS Discount
-FROM dbo.RetailTransactions
-WHERE OrderID IS NOT NULL
-  AND OrderDate IS NOT NULL
-  AND CustomerID IS NOT NULL
-  AND ProductID IS NOT NULL;
+    f.OrderID,
+    CAST(f.OrderDate AS date) AS OrderDate,
+    CAST(f.ShipDate AS date) AS ShipDate,
+    f.CustomerID,
+    f.ProductID,
+    f.GeographyID,
+    f.ShippingID,
+    TRY_CONVERT(int, f.Quantity) AS Quantity,
+    TRY_CONVERT(decimal(18,2), f.Sales) AS Sales,
+    TRY_CONVERT(decimal(18,2), f.Profit) AS Profit,
+    TRY_CONVERT(decimal(10,4), f.Discount) AS Discount
+FROM dbo.FactSales AS f
+WHERE f.OrderID IS NOT NULL
+  AND f.OrderDate IS NOT NULL
+  AND f.CustomerID IS NOT NULL
+  AND f.ProductID IS NOT NULL;
 GO
 
--- 6. Validate the cleaned view
-SELECT TOP (100) *
-FROM dbo.vw_RetailTransactions_Clean
-ORDER BY OrderDate DESC;
+/* 5. Join cleaned fact with descriptive dimensions */
+SELECT TOP (100)
+    f.OrderID,
+    f.OrderDate,
+    dc.CustomerName,
+    dc.Segment,
+    dp.ProductName,
+    dp.Category,
+    dp.SubCategory,
+    dg.Region,
+    dg.State,
+    dg.City,
+    f.Quantity,
+    f.Sales,
+    f.Profit,
+    f.Discount
+FROM dbo.vw_FactSales_Clean AS f
+LEFT JOIN dbo.DimCustomer AS dc ON f.CustomerID = dc.CustomerID
+LEFT JOIN dbo.DimProduct AS dp ON f.ProductID = dp.ProductID
+LEFT JOIN dbo.DimGeography AS dg ON f.GeographyID = dg.GeographyID
+ORDER BY f.OrderDate DESC;
 GO
