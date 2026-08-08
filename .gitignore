@@ -1,0 +1,32 @@
+# Power BI local files
+*.pbix
+*.pbit
+*.pbids
+
+# Confidential data
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.json
+*.bak
+*.db
+*.sqlite
+
+# Local environment / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Python / notebooks
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
