@@ -359,9 +359,10 @@ This project demonstrates practical experience with:
 **Avinash Dubey**  
 Data Analyst | Power BI | SQL | DAX
 
-- Email: `dubeyavinash157@gmail.com`
-- LinkedIn: `https://www.linkedin.com/in/avinash7007/`
-- Portfolio: `https://avinash7007.github.io/avinash-portfolio/`
+- 📧 Email: [dubeyavinash157@gmail.com](mailto:dubeyavinash157@gmail.com)
+- 💼 LinkedIn: [linkedin.com/in/avinash7007](https://www.linkedin.com/in/avinash7007/)
+- 🌐 Portfolio: [avinash7007.github.io/avinash-portfolio](https://avinash7007.github.io/avinash-portfolio/)
+- 💻 GitHub: [github.com/Avinash7007](https://github.com/Avinash7007)
 
 ---
 
